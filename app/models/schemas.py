@@ -145,4 +145,5 @@ class SettingsPublic(BaseModel):
     google_api_key_masked: str
     public_base_url: str
     adk_model: str
+    local_db: dict[str, Any] = Field(default_factory=dict)
     notes: list[str] = Field(default_factory=list)

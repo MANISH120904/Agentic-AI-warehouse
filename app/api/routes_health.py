@@ -27,6 +27,14 @@ def health() -> HealthResponse:
     )
 
 
+@router.get("/api/local/db")
+def local_db_status() -> dict:
+    from app.db import get_repository
+
+    info = get_repository().db_info()
+    return {"ok": True, **info}
+
+
 @router.get("/api/settings", response_model=SettingsPublic)
 def settings_public() -> SettingsPublic:
     return SettingsPublic(**AgentService().public_status())

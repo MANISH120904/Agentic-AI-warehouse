@@ -27,11 +27,19 @@ That product requires Account SID, Application SID, owned `from` number, and a p
 
 Do not mix the two base URLs or credential sets.
 
-## Google ADK
+## Local database
+
+- Engine: **SQLite** file at `WAREHOUSE_DB_PATH` (default `app/data/warehouse.db`)
+- Seeded once from `app/data/*.json` when the DB is empty
+- FastAPI, Streamlit, and ADK tools all use this same file via `app.db.get_repository()`
+- No remote warehouse database is required for the local demo
+
+## Google ADK (local voice)
 
 - Browser voice agent via official `adk web` UI
 - Uses Gemini Live-capable model from `ADK_MODEL`
-- Tools call the same local Python services / JSON data
+- Tools call the same local Python services → **local SQLite**
+- This is how you **speak with local data** without exposing the API to the internet
 - **Not** connected to PSTN audio in this MVP
 
 ## Bridge options (truth table)

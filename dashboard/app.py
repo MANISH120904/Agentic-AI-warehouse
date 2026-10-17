@@ -88,6 +88,7 @@ def risk_badge(risk: str) -> str:
 
 PAGES = [
     "Overview",
+    "Local Voice",
     "Orders",
     "Inventory",
     "Make a Call",
@@ -151,6 +152,85 @@ def render_overview() -> None:
                 f'{call.get("phone_number")} · {call.get("status")} · {call.get("purpose")}</div>',
                 unsafe_allow_html=True,
             )
+
+
+def render_local_voice() -> None:
+    st.title("Local Voice Agent")
+    st.caption(
+        "Talk to the Google ADK browser agent. It uses tools against the local SQLite DB "
+        "on this machine — no cloud warehouse database required."
+    )
+
+    try:
+        db = api_get("/api/local/db")
+        settings = api_get("/api/settings")
+    except Exception as exc:  # noqa: BLE001
+        st.error(f"Backend unavailable: {exc}")
+        return
+
+    st.markdown(
+        f'<div class="wv-card">'
+        f'{badge("LOCAL DB", "ok")} '
+        f'<code>{db.get("db_path")}</code><br/>'
+        f'Orders: {db.get("counts", {}).get("orders", 0)} · '
+        f'Inventory: {db.get("counts", {}).get("inventory", 0)} · '
+        f'Shipments: {db.get("counts", {}).get("shipments", 0)}'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    if settings.get("google_configured"):
+        st.success("GOOGLE_API_KEY is configured — ADK can start.")
+    else:
+        st.warning(
+            "Set GOOGLE_API_KEY in your local `.env`, then restart the API. "
+            "Voice needs a Gemini Live-capable key."
+        )
+
+    st.subheader("How to talk with local data")
+    st.markdown(
+        """
+1. Keep this FastAPI backend running (local SQLite is already seeded).
+2. In a new terminal from the repo:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+$env:SSL_CERT_FILE = (python -m certifi)
+cd app
+adk web --port 8035
+```
+
+3. Open the ADK URL, select **agent** / `warehouse_voice_agent`, reload, click the mic.
+4. Try: *“What is the status of order ORD-1001?”* or *“Is SKU-B210 low on stock?”*
+        """
+    )
+
+    st.subheader("Prove tools hit the local DB")
+    col1, col2 = st.columns(2)
+    with col1:
+        order_id = st.text_input("Order ID", value="ORD-1001", key="lv_order")
+        if st.button("Lookup order via API"):
+            status, body = api_post(
+                "/api/tools/get_order_status", {"order_id": order_id}
+            )
+            if status >= 400:
+                st.error(body)
+            else:
+                st.json(body)
+    with col2:
+        product_id = st.text_input("Product ID", value="SKU-B210", key="lv_sku")
+        if st.button("Lookup inventory via API"):
+            status, body = api_post(
+                "/api/tools/get_inventory", {"product_id": product_id}
+            )
+            if status >= 400:
+                st.error(body)
+            else:
+                st.json(body)
+
+    st.info(
+        "Phone (Edesy) is optional and separate. Local spoken answers use ADK + this SQLite file."
+    )
 
 
 def render_orders() -> None:
@@ -400,6 +480,7 @@ def render_settings() -> None:
 
 PAGE_RENDERERS = {
     "Overview": render_overview,
+    "Local Voice": render_local_voice,
     "Orders": render_orders,
     "Inventory": render_inventory,
     "Make a Call": render_make_call,

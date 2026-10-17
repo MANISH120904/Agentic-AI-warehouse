@@ -2,12 +2,13 @@
 
 Hackathon MVP: an AI voice + operator stack for warehouse and delivery support.
 
-- **FastAPI** backend with simulated warehouse data (JSON)
-- **Streamlit** operator dashboard
-- **Edesy Hosted Voice Agent API** for outbound telephone calls
-- **Google ADK** browser voice agent (separate from PSTN audio)
+- **Local SQLite database** (`app/data/warehouse.db`) seeded from JSON samples
+- **FastAPI** backend reading/writing that local DB
+- **Streamlit** operator dashboard (includes **Local Voice** instructions)
+- **Google ADK** browser voice agent — talks with mic/speaker and calls tools against the **same local DB**
+- **Edesy** outbound phone calls (optional; separate from local voice)
 
-> Phone calls and the ADK browser mic session are **not** the same agent connection in this MVP. Warehouse tools are shared; audio paths are not.
+> **Local-first:** speak via ADK in the browser; tools query local SQLite. Phone (Edesy) is optional and does not share the ADK audio session.
 
 ## Architecture
 
@@ -16,26 +17,24 @@ flowchart LR
   Dash[Streamlit] --> API[FastAPI]
   ADK[ADK browser voice] --> Tools[Warehouse tools]
   API --> Tools
-  API --> Edesy[Edesy hosted Voice Agent API]
-  Edesy -->|optional HTTPS tools| API
-  Tools --> JSON[(Local JSON data)]
+  Tools --> DB[(Local SQLite warehouse.db)]
+  API --> Edesy[Edesy hosted Voice Agent API optional]
 ```
 
 ## Features
 
 | Feature | Status |
 |---|---|
-| Order / inventory / history lookup | Working (simulated JSON) |
+| Local SQLite warehouse DB | Working (seeded from `app/data/*.json`) |
+| Order / inventory / history lookup | Working against local DB |
 | Delay risk heuristic | Working (simulated, labeled) |
-| Feedback persistence | Working |
-| Mock outbound calls | Working without credentials |
-| Real outbound via Edesy | Working when key, agent id, credits configured |
-| Call status / transcript refresh | Working against Edesy when live |
-| Streamlit dashboard | Working |
-| ADK browser voice + tools | Working when Google key + Live model configured |
-| Hosted Edesy HTTP tools → FastAPI | Supported with public HTTPS URL |
-| ADK audio on the phone call | **Not implemented** (needs SIP WebSocket bridge) |
-| Inbound call routing | Requires Edesy number assignment — verify manually |
+| Feedback persistence | Working (local DB) |
+| ADK browser voice + local DB tools | Working when `GOOGLE_API_KEY` set |
+| Mock outbound calls | Working without telephony credits |
+| Real outbound via Edesy | Optional when key, agent id, credits configured |
+| Hosted Edesy HTTP tools → FastAPI | Needs public HTTPS URL |
+| ADK audio on the phone call | **Not implemented** |
+| Inbound customer dial-in | Needs Edesy number assignment — not local-default |
 
 ## Prerequisites
 
@@ -61,7 +60,8 @@ See `.env.example`. Important variables:
 
 | Variable | Purpose |
 |---|---|
-| `MOCK_MODE` | `true` simulates outbound calls (default) |
+| `WAREHOUSE_DB_PATH` | Local SQLite file (default `app/data/warehouse.db`) |
+| `MOCK_MODE` | `true` simulates outbound phone calls (default) |
 | `EDESY_API_KEY` | Hosted Voice Agent API key (`vp_live_…`) |
 | `EDESY_API_BASE_URL` | Default `https://voice-agent.edesy.in/api/v1` |
 | `EDESY_AGENT_ID` | Numeric agent id from Edesy |
@@ -92,20 +92,28 @@ streamlit run dashboard/app.py --server.port 8510
 
 Open the Streamlit URL shown in the terminal.
 
-## Run the ADK browser voice agent
+## Talk to local data (ADK voice)
+
+This is the supported **local** voice path: microphone → Gemini Live → Python tools → **local SQLite**.
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 $env:GOOGLE_GENAI_USE_ENTERPRISE = "FALSE"
-# $env:GOOGLE_API_KEY = "<your-key>"   # prefer .env
+# Put GOOGLE_API_KEY in .env
 $env:SSL_CERT_FILE = (python -m certifi)
 cd app
 adk web --port 8035
 ```
 
-Select `agent` (warehouse_voice_agent), reload, use the microphone. Ask for order `ORD-1001` or product `SKU-B210`.
+Select `agent` (`warehouse_voice_agent`), reload, click the mic. Try:
 
-This is a **browser** voice demo. It does not place a phone call.
+- “What is the status of order ORD-1001?”
+- “How much stock is left for SKU-B210?”
+- “What is the delay risk for ORD-1003?”
+
+Dashboard → **Local Voice** also shows DB path/counts and the same tool lookups.
+
+This browser voice session does **not** place a PSTN phone call.
 
 ## Edesy account & outbound setup
 

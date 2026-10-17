@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.repositories.sqlite_repository import DEFAULT_DB_PATH
 
 
 class Settings(BaseSettings):
@@ -24,6 +27,10 @@ class Settings(BaseSettings):
     api_host: str = Field(default="127.0.0.1", alias="API_HOST")
     api_port: int = Field(default=8765, alias="API_PORT")
     http_timeout_seconds: float = Field(default=30.0, alias="HTTP_TIMEOUT_SECONDS")
+    warehouse_db_path: str = Field(
+        default=str(DEFAULT_DB_PATH),
+        alias="WAREHOUSE_DB_PATH",
+    )
 
     edesy_api_key: str = Field(default="", alias="EDESY_API_KEY")
     edesy_api_base_url: str = Field(
@@ -50,6 +57,10 @@ class Settings(BaseSettings):
         if value is None or value == "":
             return None
         return value
+
+    @property
+    def local_db_path(self) -> Path:
+        return Path(self.warehouse_db_path).expanduser().resolve()
 
     @property
     def edesy_configured(self) -> bool:

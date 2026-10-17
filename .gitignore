@@ -31,3 +31,6 @@ Thumbs.db
 *.log
 .adk/
 agent-tools/
+app/data/warehouse.db
+app/data/warehouse.db-*
+*.db-journal

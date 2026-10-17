@@ -23,9 +23,11 @@ _feedback_service = FeedbackService()
 
 
 def get_order_status(order_id: str) -> dict[str, Any]:
-    """Look up order status and linked shipment by order ID (e.g. ORD-1001)."""
+    """Look up order status from the local SQLite DB by order ID (e.g. ORD-1001)."""
     try:
-        return _order_service.get_order_status(order_id)
+        result = _order_service.get_order_status(order_id)
+        result["source"] = "local_sqlite"
+        return result
     except Exception as exc:  # noqa: BLE001 — surface tool errors to the model
         return {"ok": False, "error": f"Tool error: {exc}", "is_simulated": True}
 

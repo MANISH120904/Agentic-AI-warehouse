@@ -6,12 +6,13 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 from uuid import uuid4
 
-from app.repositories.json_repository import JsonRepository
+from app.db import get_repository
+from app.repositories.sqlite_repository import SqliteRepository
 
 
 class FeedbackService:
-    def __init__(self, repo: Optional[JsonRepository] = None) -> None:
-        self.repo = repo or JsonRepository()
+    def __init__(self, repo: Optional[SqliteRepository] = None) -> None:
+        self.repo = repo or get_repository()
 
     def list_feedback(self) -> list[dict[str, Any]]:
         rows = self.repo.read_list("feedback")

@@ -5,7 +5,8 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Optional
 
-from app.repositories.json_repository import JsonRepository
+from app.db import get_repository
+from app.repositories.sqlite_repository import SqliteRepository
 from app.services.order_service import OrderService
 
 
@@ -32,10 +33,10 @@ class PredictionService:
 
     def __init__(
         self,
-        repo: Optional[JsonRepository] = None,
+        repo: Optional[SqliteRepository] = None,
         order_service: Optional[OrderService] = None,
     ) -> None:
-        self.repo = repo or JsonRepository()
+        self.repo = repo or get_repository()
         self.order_service = order_service or OrderService(self.repo)
 
     def predict_delivery_delay(self, order_id: str) -> dict[str, Any]:

@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from app.repositories.json_repository import JsonRepository
+from app.db import get_repository
+from app.repositories.sqlite_repository import SqliteRepository
 
 
 class OrderService:
-    def __init__(self, repo: Optional[JsonRepository] = None) -> None:
-        self.repo = repo or JsonRepository()
+    def __init__(self, repo: Optional[SqliteRepository] = None) -> None:
+        self.repo = repo or get_repository()
 
     def list_orders(self) -> list[dict[str, Any]]:
         return self.repo.read_list("orders")

@@ -7,7 +7,8 @@ from typing import Any, Optional
 from uuid import uuid4
 
 from app.config import Settings, get_settings
-from app.repositories.json_repository import JsonRepository
+from app.db import get_repository
+from app.repositories.sqlite_repository import SqliteRepository
 from app.services.edesy_service import EdesyError, EdesyService
 from app.services.order_service import OrderService
 
@@ -15,12 +16,12 @@ from app.services.order_service import OrderService
 class CallService:
     def __init__(
         self,
-        repo: Optional[JsonRepository] = None,
+        repo: Optional[SqliteRepository] = None,
         settings: Optional[Settings] = None,
         edesy: Optional[EdesyService] = None,
         order_service: Optional[OrderService] = None,
     ) -> None:
-        self.repo = repo or JsonRepository()
+        self.repo = repo or get_repository()
         self.settings = settings or get_settings()
         self.edesy = edesy or EdesyService(self.settings)
         self.order_service = order_service or OrderService(self.repo)
