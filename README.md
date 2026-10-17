@@ -13,24 +13,14 @@ Hackathon MVP: multimodal AI voice agent for warehouse and delivery support, wit
 
 ## Architecture
 
-```text
-                    +------------------+
-  Phone ----------> | Edesy voice agent| ---HTTP tools---+
-                    +------------------+                  |
-                                                          v
-  ADK browser ----> +---------------------------------------------+
-  (Gemini Live)     |              FastAPI (local)                |
-                    |  tools | feedback loop | self-healing       |
-                    |  low-latency metrics                        |
-                    +----------------------+----------------------+
-                                           |
-  Streamlit dashboard ---------------------|
-                                           v
-                                 +------------------+
-                                 | SQLite warehouse |
-                                 | (local .db file) |
-                                 +------------------+
-```
+![WarehouseVoiceAI architecture](docs/architecture.svg)
+
+| Layer | Components |
+| --- | --- |
+| Clients | Phone, ADK browser Gemini Live, Streamlit dashboard |
+| Telephony | Edesy hosted voice agent → HTTP tools |
+| Backend | FastAPI tools, feedback loop, self-healing, latency metrics |
+| Data | Local SQLite `warehouse.db` |
 
 **Data plane is local:** FastAPI, ADK tools, and the dashboard all read/write `app/data/warehouse.db` (seeded from `app/data/*.json`).
 
