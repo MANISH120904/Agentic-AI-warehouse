@@ -11,31 +11,12 @@ WarehouseVoiceAI is a modular Python monolith:
 - **Google ADK** — separate browser voice agent with the same tools
 
 ```mermaid
-flowchart TB
-  subgraph ui [Operator UI]
-    ST[Streamlit dashboard]
-    ADK[ADK web browser voice]
-  end
-  subgraph app [WarehouseVoiceAI monolith]
-    API[FastAPI routes]
-    SVC[Services]
-    REPO[JsonRepository]
-    DATA[(app/data/*.json)]
-    EDESY_SVC[EdesyService]
-  end
-  subgraph providers [External]
-    EDESY[Edesy voice-agent.edesy.in]
-    GEMINI[Gemini Live via ADK]
-  end
-  ST --> API
-  ADK --> SVC
-  API --> SVC
-  SVC --> REPO
-  REPO --> DATA
-  SVC --> EDESY_SVC
-  EDESY_SVC --> EDESY
-  ADK --> GEMINI
-  EDESY -->|"optional HTTP tools"| API
+flowchart LR
+  ST[Streamlit] --> API[FastAPI]
+  ADK[ADKBrowser] --> API
+  API --> DB[(SQLite)]
+  API --> Edesy[EdesyAPI]
+  Edesy --> API
 ```
 
 ## Package layout
