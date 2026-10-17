@@ -1,0 +1,122 @@
+[
+  {
+    "shipment_id": "SHP-9001",
+    "order_id": "ORD-1001",
+    "current_status": "in_transit",
+    "last_updated": "2026-10-16T14:20:00Z",
+    "delay_risk": "low",
+    "delay_reason": "",
+    "weather_risk": "none",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9002",
+    "order_id": "ORD-1002",
+    "current_status": "at_hub",
+    "last_updated": "2026-10-16T11:05:00Z",
+    "delay_risk": "medium",
+    "delay_reason": "Hub congestion during peak hours",
+    "weather_risk": "light_rain",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9003",
+    "order_id": "ORD-1003",
+    "current_status": "delayed",
+    "last_updated": "2026-10-16T09:40:00Z",
+    "delay_risk": "high",
+    "delay_reason": "Carrier exception: route diversion",
+    "weather_risk": "storm",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9004",
+    "order_id": "ORD-1004",
+    "current_status": "delivered",
+    "last_updated": "2026-10-15T16:10:00Z",
+    "delay_risk": "low",
+    "delay_reason": "",
+    "weather_risk": "none",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9005",
+    "order_id": "ORD-1005",
+    "current_status": "out_for_delivery",
+    "last_updated": "2026-10-17T06:15:00Z",
+    "delay_risk": "low",
+    "delay_reason": "",
+    "weather_risk": "none",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9006",
+    "order_id": "ORD-1006",
+    "current_status": "awaiting_pickup",
+    "last_updated": "2026-10-16T18:00:00Z",
+    "delay_risk": "medium",
+    "delay_reason": "Inventory pick backlog",
+    "weather_risk": "none",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9007",
+    "order_id": "ORD-1007",
+    "current_status": "in_transit",
+    "last_updated": "2026-10-16T20:30:00Z",
+    "delay_risk": "low",
+    "delay_reason": "",
+    "weather_risk": "fog",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9008",
+    "order_id": "ORD-1008",
+    "current_status": "cancelled",
+    "last_updated": "2026-10-14T12:00:00Z",
+    "delay_risk": "low",
+    "delay_reason": "Order cancelled by customer",
+    "weather_risk": "none",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9009",
+    "order_id": "ORD-1009",
+    "current_status": "delayed",
+    "last_updated": "2026-10-16T08:25:00Z",
+    "delay_risk": "high",
+    "delay_reason": "Flood advisory on last-mile route",
+    "weather_risk": "heavy_rain",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9010",
+    "order_id": "ORD-1010",
+    "current_status": "packed",
+    "last_updated": "2026-10-16T21:45:00Z",
+    "delay_risk": "low",
+    "delay_reason": "",
+    "weather_risk": "none",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9011",
+    "order_id": "ORD-1011",
+    "current_status": "in_transit",
+    "last_updated": "2026-10-17T01:10:00Z",
+    "delay_risk": "medium",
+    "delay_reason": "Port clearance wait time",
+    "weather_risk": "none",
+    "is_simulated": true
+  },
+  {
+    "shipment_id": "SHP-9012",
+    "order_id": "ORD-1012",
+    "current_status": "processing",
+    "last_updated": "2026-10-16T22:00:00Z",
+    "delay_risk": "low",
+    "delay_reason": "",
+    "weather_risk": "none",
+    "is_simulated": true
+  }
+]

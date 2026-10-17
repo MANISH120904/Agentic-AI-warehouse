@@ -1,0 +1,66 @@
+[
+  {
+    "product_id": "SKU-A100",
+    "product_name": "Corrugated Carton Medium",
+    "warehouse": "Mumbai-West",
+    "quantity_available": 420,
+    "reorder_threshold": 100,
+    "is_simulated": true
+  },
+  {
+    "product_id": "SKU-B210",
+    "product_name": "Bubble Wrap Roll 50m",
+    "warehouse": "Delhi-NCR",
+    "quantity_available": 45,
+    "reorder_threshold": 50,
+    "is_simulated": true
+  },
+  {
+    "product_id": "SKU-C300",
+    "product_name": "Pallet Wrap Stretch Film",
+    "warehouse": "Bengaluru-South",
+    "quantity_available": 180,
+    "reorder_threshold": 60,
+    "is_simulated": true
+  },
+  {
+    "product_id": "SKU-D400",
+    "product_name": "Handheld Barcode Scanner",
+    "warehouse": "Pune-East",
+    "quantity_available": 22,
+    "reorder_threshold": 25,
+    "is_simulated": true
+  },
+  {
+    "product_id": "SKU-E500",
+    "product_name": "Safety Gloves Pack (12)",
+    "warehouse": "Mumbai-West",
+    "quantity_available": 300,
+    "reorder_threshold": 80,
+    "is_simulated": true
+  },
+  {
+    "product_id": "SKU-F600",
+    "product_name": "Warehouse Label Printer",
+    "warehouse": "Ahmedabad-Central",
+    "quantity_available": 8,
+    "reorder_threshold": 10,
+    "is_simulated": true
+  },
+  {
+    "product_id": "SKU-G700",
+    "product_name": "Plastic Tote Bin Large",
+    "warehouse": "Kolkata-East",
+    "quantity_available": 95,
+    "reorder_threshold": 40,
+    "is_simulated": true
+  },
+  {
+    "product_id": "SKU-H800",
+    "product_name": "Dock Leveler Sensor Kit",
+    "warehouse": "Hyderabad-Hub",
+    "quantity_available": 12,
+    "reorder_threshold": 15,
+    "is_simulated": true
+  }
+]
