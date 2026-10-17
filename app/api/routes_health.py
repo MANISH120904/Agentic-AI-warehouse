@@ -35,6 +35,15 @@ def local_db_status() -> dict:
     return {"ok": True, **info}
 
 
+@router.get("/api/metrics/execution")
+def execution_metrics() -> dict:
+    """Recent request latency summary (target: sub-500ms tool/API paths)."""
+    from app.services.timing_service import timing_service
+
+    summary = timing_service.summary()
+    return {"ok": True, "low_execution_time": True, **summary}
+
+
 @router.get("/api/settings", response_model=SettingsPublic)
 def settings_public() -> SettingsPublic:
     return SettingsPublic(**AgentService().public_status())

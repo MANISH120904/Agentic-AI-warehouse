@@ -1,45 +1,77 @@
 # WarehouseVoiceAI
 
-Hackathon MVP: an AI voice + operator stack for warehouse and delivery support.
+Hackathon MVP: multimodal AI voice agent for warehouse and delivery support, with a local SQLite data plane, FastAPI tools, Streamlit ops dashboard, Google ADK browser voice, and optional Edesy telephony.
 
-- **Local SQLite database** (`app/data/warehouse.db`) seeded from JSON samples
-- **FastAPI** backend reading/writing that local DB
-- **Streamlit** operator dashboard (includes **Local Voice** instructions)
-- **Google ADK** browser voice agent — talks with mic/speaker and calls tools against the **same local DB**
-- **Edesy** outbound phone calls (optional; separate from local voice)
+## Highlighted capabilities
 
-> **Local-first:** speak via ADK in the browser; tools query local SQLite. Phone (Edesy) is optional and does not share the ADK audio session.
+| Capability | Status |
+|---|---|
+| **Multimodal implemented** | Voice (and ADK video-capable Live session) via Google ADK + Gemini Live; phone voice via Edesy hosted agent; operator UI in Streamlit |
+| **Feedback loop implemented** | Ratings/comments persisted locally, linked to call IDs when present; dashboard satisfaction metric |
+| **Self-healing feedback** | Safe idempotent reads retry once; outbound calls never auto-retry; provider/auth/balance errors surfaced; callbacks reconciled by re-fetching call state; sanitized error recording |
+| **Execution time low** | In-process latency tracker on every HTTP request (`X-Execution-Time-Ms` + `GET /api/metrics/execution`, 500ms target) |
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-  Dash[Streamlit] --> API[FastAPI]
-  ADK[ADK browser voice] --> Tools[Warehouse tools]
+flowchart TB
+  subgraph clients [Clients]
+    Phone[Customer phone PSTN]
+    BrowserMic[Browser mic ADK web]
+    Ops[Streamlit operator dashboard]
+  end
+
+  subgraph edesyCloud [Edesy Vani hosted]
+    VoiceAgent[Hosted voice agent multimodal audio]
+    HttpTools[Custom HTTP functions]
+  end
+
+  subgraph localApp [Local WarehouseVoiceAI]
+    API[FastAPI low-latency API]
+    Timing[Execution time metrics]
+    Tools[Warehouse tools]
+    Feedback[Feedback loop service]
+    Heal[Self-healing call or read handlers]
+    ADK[Google ADK Gemini Live agent]
+    DB[(SQLite warehouse.db)]
+  end
+
+  Phone -->|inbound or outbound| VoiceAgent
+  VoiceAgent --> HttpTools
+  HttpTools -->|PUBLIC_BASE_URL HTTPS| API
+  BrowserMic --> ADK
+  ADK --> Tools
+  Ops --> API
+  API --> Timing
   API --> Tools
-  Tools --> DB[(Local SQLite warehouse.db)]
-  API --> Edesy[Edesy hosted Voice Agent API optional]
+  API --> Feedback
+  API --> Heal
+  Tools --> DB
+  Feedback --> DB
+  Heal --> VoiceAgent
 ```
+
+**Data plane is local:** FastAPI, ADK tools, and the dashboard all read/write `app/data/warehouse.db` (seeded from `app/data/*.json`).
 
 ## Features
 
 | Feature | Status |
 |---|---|
-| Local SQLite warehouse DB | Working (seeded from `app/data/*.json`) |
-| Order / inventory / history lookup | Working against local DB |
-| Delay risk heuristic | Working (simulated, labeled) |
-| Feedback persistence | Working (local DB) |
-| ADK browser voice + local DB tools | Working when `GOOGLE_API_KEY` set |
-| Mock outbound calls | Working without telephony credits |
-| Real outbound via Edesy | Optional when key, agent id, credits configured |
-| Hosted Edesy HTTP tools → FastAPI | Needs public HTTPS URL |
-| ADK audio on the phone call | **Not implemented** |
-| Inbound customer dial-in | Needs Edesy number assignment — not local-default |
+| Multimodal voice (ADK browser + Edesy phone) | Implemented |
+| Feedback loop + satisfaction metric | Implemented |
+| Self-healing reads / bounded recovery | Implemented |
+| Low execution-time tracking | Implemented (`/api/metrics/execution`) |
+| Local SQLite warehouse DB | Working |
+| Order / inventory / history / delay risk | Working |
+| Mock outbound calls | Working without credits |
+| Real Edesy outbound | When key, agent id, credits configured |
+| Hosted Edesy HTTP tools → FastAPI | Needs public HTTPS tunnel |
+| Inbound dial-in | Needs own Edesy number (shared trial is outbound-only) |
 
 ## Prerequisites
 
 - Python 3.11+ (3.12 tested)
-- Edesy account + API key (for live calls)
+- Edesy/Vani account (for live phone)
 - Google AI Studio API key (for ADK browser voice)
 - Mic/speakers for ADK demo
 
@@ -51,7 +83,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
-# Edit .env — never commit it. Rotate any key that was pasted into chat.
+# Edit .env — never commit secrets
 ```
 
 ### Environment
@@ -70,8 +102,6 @@ See `.env.example`. Important variables:
 | `GOOGLE_API_KEY` | ADK / Gemini |
 | `ADK_MODEL` | Live-capable Gemini model id |
 
-SIP fields (`EDESY_ACCOUNT_SID`, `EDESY_APPLICATION_SID`) belong to a different Edesy product and are unused here.
-
 ## Run the backend
 
 ```powershell
@@ -80,7 +110,8 @@ $env:MOCK_MODE = "true"
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8765 --reload
 ```
 
-Health check: [http://127.0.0.1:8765/health](http://127.0.0.1:8765/health)
+- Health: http://127.0.0.1:8765/health  
+- Latency: http://127.0.0.1:8765/api/metrics/execution  
 
 ## Run the dashboard
 
@@ -90,50 +121,29 @@ $env:WAREHOUSE_API_BASE = "http://127.0.0.1:8765"
 streamlit run dashboard/app.py --server.port 8510
 ```
 
-Open the Streamlit URL shown in the terminal.
-
-## Talk to local data (ADK voice)
-
-This is the supported **local** voice path: microphone → Gemini Live → Python tools → **local SQLite**.
+## Talk to local data (ADK multimodal voice)
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 $env:GOOGLE_GENAI_USE_ENTERPRISE = "FALSE"
-# Put GOOGLE_API_KEY in .env
 $env:SSL_CERT_FILE = (python -m certifi)
 cd app
 adk web --port 8035
 ```
 
-Select `agent` (`warehouse_voice_agent`), reload, click the mic. Try:
+Select `warehouse_voice_agent`, use mic (and camera if testing video Live). Ask about `ORD-1001` / `SKU-B210`.
 
-- “What is the status of order ORD-1001?”
-- “How much stock is left for SKU-B210?”
-- “What is the delay risk for ORD-1003?”
+## Edesy phone setup (optional)
 
-Dashboard → **Local Voice** also shows DB path/counts and the same tool lookups.
-
-This browser voice session does **not** place a PSTN phone call.
-
-## Edesy account & outbound setup
-
-1. Rotate leaked keys; create a new API key with call/agent scopes.
-2. Create an agent in Edesy (prompt + Live LLM provider).
-3. Put `EDESY_API_KEY` and `EDESY_AGENT_ID` in `.env`.
-4. Confirm wallet credits.
-5. Set `MOCK_MODE=false`.
-6. Use **Make a Call** in the dashboard with confirmation enabled.
-
-Optional — let the hosted phone agent call your tools:
+1. Create agent + custom HTTP functions → your public FastAPI `/api/tools/*`
+2. Credits required
+3. Shared trial DID is often **outbound only** — buy your own number for inbound
+4. Outbound/Test Call dials **your** mobile; inbound = you dial the workspace number
 
 ```powershell
 $env:PUBLIC_BASE_URL = "https://your-public-https-url"
 python scripts/register_edesy_functions.py --yes
 ```
-
-## Inbound calls
-
-Inbound only works if an Edesy phone number is assigned to your agent in the Edesy workspace. This repo does not auto-provision numbers. Verify in the Edesy dashboard before demoing inbound.
 
 ## Testing
 
@@ -142,46 +152,25 @@ Inbound only works if an Edesy phone number is assigned to your agent in the Ede
 pytest -q
 ```
 
-Tests use mocked HTTP for Edesy and never place real calls.
-
 ## Mock mode
 
-With `MOCK_MODE=true` (default):
-
-- Dashboard, orders, inventory, delay risk, feedback work offline
-- Outbound calls write simulated records labeled `is_mock`
-- No telephony credits are consumed
+`MOCK_MODE=true` (default): full warehouse + mock calls, no telephony spend.
 
 ## Known limitations
 
-- ADK browser agent ≠ phone audio session
-- Delay risk is a transparent heuristic, not ML
-- Sample data is simulated
-- Edesy call-ended callbacks are unsigned; app re-fetches provider state
-- JSON files are for hackathon demos, not multi-writer production scale
+- ADK browser session ≠ PSTN audio session
+- Delay risk is heuristic / simulated
+- Shared Edesy trial numbers may block inbound
+- Hackathon SQLite — not multi-region production scale
 
 ## Security & privacy
 
 - Never commit `.env`
-- Never expose API keys to Streamlit or browser clients
-- Rotate keys if they appeared in chat, screenshots, or logs
-- Do not put real customer PII into the sample JSON for public demos
-
-## Cost considerations
-
-- Edesy outbound minutes / credits are billable
-- Gemini Live / ADK usage is billable on your Google project
-- Prefer `MOCK_MODE` while building UI and tests
+- Never expose API keys to the browser
+- Rotate keys if pasted into chat
 
 ## Docs
 
 - [docs/INTEGRATION_NOTES.md](docs/INTEGRATION_NOTES.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-
-## Manual checklist (you)
-
-1. Rotate Edesy + Gemini keys that were shared in chat
-2. Verify Edesy credits, agent id, and a dashboard Test Call
-3. Confirm Google Live model access for ADK
-4. Only then set `MOCK_MODE=false` for a live dial
