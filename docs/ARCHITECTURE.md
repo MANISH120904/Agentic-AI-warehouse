@@ -10,13 +10,10 @@ WarehouseVoiceAI is a modular Python monolith:
 - **Edesy Hosted Voice Agent API** — real/mock outbound telephony
 - **Google ADK** — separate browser voice agent with the same tools
 
-```mermaid
-flowchart LR
-  ST[Streamlit] --> API[FastAPI]
-  ADK[ADKBrowser] --> API
-  API --> DB[(SQLite)]
-  API --> Edesy[EdesyAPI]
-  Edesy --> API
+```text
+Phone --> Edesy voice agent --> HTTP tools --> FastAPI --> SQLite
+ADK browser (Gemini Live) ------------------> FastAPI --> SQLite
+Streamlit dashboard ------------------------> FastAPI --> SQLite
 ```
 
 ## Package layout
